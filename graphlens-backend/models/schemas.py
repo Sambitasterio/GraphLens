@@ -55,3 +55,16 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     answer: str
     citations: list[Citation]
+
+
+class QueryLogOut(BaseModel):
+    id: str
+    query: str
+    answer: str
+    citations: list[Citation] = []
+    used_graph: bool = False
+    total_tokens: int = 0
+    cost_usd: float = 0.0
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

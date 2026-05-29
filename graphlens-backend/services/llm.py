@@ -6,12 +6,44 @@ variants share the same prompt.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import lru_cache
-from typing import Iterator
+from typing import Callable, Iterator
 
 from config import settings
 from models.schemas import Citation
 from services.hybrid import HybridContext
+
+
+@dataclass
+class LLMResult:
+    answer: str
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    cost_usd: float = 0.0
+
+
+# Approximate OpenAI pricing in USD per 1M tokens (input, output). Update as
+# pricing changes — used only for the cost estimate stored in query_logs.
+_PRICING = {
+    "gpt-4o": (2.50, 10.00),
+    "gpt-4o-mini": (0.15, 0.60),
+    "gpt-4.1": (2.00, 8.00),
+    "gpt-4.1-mini": (0.40, 1.60),
+}
+
+
+def _cost(model: str, prompt_tokens: int, completion_tokens: int) -> float:
+    inp, out = _PRICING.get(model, (0.0, 0.0))
+    return round(prompt_tokens / 1e6 * inp + completion_tokens / 1e6 * out, 6)
+
+
+def _result(answer: str, model: str, usage) -> LLMResult:
+    pt = getattr(usage, "prompt_tokens", 0) or 0
+    ct = getattr(usage, "completion_tokens", 0) or 0
+    tt = getattr(usage, "total_tokens", 0) or (pt + ct)
+    return LLMResult(answer, pt, ct, tt, _cost(model, pt, ct))
 
 SYSTEM_PROMPT = (
     "You are GraphLens, an enterprise document assistant. Answer the user's "
@@ -56,23 +88,30 @@ def citations_from(ctx: HybridContext) -> list[Citation]:
     ]
 
 
-def generate_answer(ctx: HybridContext) -> str:
+def generate_answer(ctx: HybridContext) -> LLMResult:
     resp = _client().chat.completions.create(
         model=settings.llm_model,
         messages=build_messages(ctx),
         temperature=0.2,
     )
-    return resp.choices[0].message.content or ""
+    answer = resp.choices[0].message.content or ""
+    return _result(answer, settings.llm_model, resp.usage)
 
 
-def stream_answer(ctx: HybridContext) -> Iterator[str]:
+def stream_answer(
+    ctx: HybridContext, on_complete: Callable[[LLMResult], None] | None = None
+) -> Iterator[str]:
+    """Yield answer tokens. When the usage chunk arrives at the end, invoke
+    `on_complete` with the token/cost result (for logging)."""
     stream = _client().chat.completions.create(
         model=settings.llm_model,
         messages=build_messages(ctx),
         temperature=0.2,
         stream=True,
+        stream_options={"include_usage": True},
     )
     for chunk in stream:
-        delta = chunk.choices[0].delta.content
-        if delta:
-            yield delta
+        if chunk.choices and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+        if getattr(chunk, "usage", None) and on_complete:
+            on_complete(_result("", settings.llm_model, chunk.usage))

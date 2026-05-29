@@ -2,10 +2,10 @@
 prompt-building and citation logic (no network)."""
 import pytest
 
-from models.chunk import Chunk
 from models.retrieval import RetrievedChunk
 from services import llm
 from services.hybrid import HybridContext
+from services.llm import LLMResult
 
 
 # ── prompt + citation helpers ──────────────────────────────────────
@@ -37,6 +37,12 @@ def test_citations_from_context():
     assert cites[0].page == 1
 
 
+def test_cost_estimate():
+    # gpt-4o: $2.50 / 1M input, $10.00 / 1M output
+    assert llm._cost("gpt-4o", 1_000_000, 1_000_000) == pytest.approx(12.5)
+    assert llm._cost("unknown-model", 1000, 1000) == 0.0
+
+
 # ── endpoint (retrieval + LLM mocked, auth overridden) ─────────────
 @pytest.fixture
 def authed_client(client, monkeypatch):
@@ -48,7 +54,10 @@ def authed_client(client, monkeypatch):
         id="u1", email="x@y.com", hashed_password="x", role="user"
     )
     monkeypatch.setattr("services.hybrid.hybrid_retrieve", lambda *a, **k: _ctx())
-    monkeypatch.setattr("services.llm.generate_answer", lambda ctx: "Dr. Elena Voss.")
+    monkeypatch.setattr(
+        "services.llm.generate_answer",
+        lambda ctx: LLMResult(answer="Dr. Elena Voss.", total_tokens=42, cost_usd=0.001),
+    )
     return client
 
 
@@ -63,3 +72,15 @@ def test_query_returns_answer_and_citations(authed_client):
 def test_query_validates_empty_query(authed_client):
     r = authed_client.post("/query", json={"query": ""})
     assert r.status_code == 422  # pydantic min_length
+
+
+def test_query_is_logged_to_history(authed_client):
+    authed_client.post("/query", json={"query": "Who is the CTO?"})
+    r = authed_client.get("/query/history")
+    assert r.status_code == 200, r.text
+    logs = r.json()
+    assert len(logs) == 1
+    assert logs[0]["query"] == "Who is the CTO?"
+    assert logs[0]["answer"] == "Dr. Elena Voss."
+    assert logs[0]["total_tokens"] == 42
+    assert logs[0]["citations"][0]["filename"] == "report.pdf"

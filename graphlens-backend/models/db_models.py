@@ -9,7 +9,17 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 
 from db import Base
@@ -46,3 +56,23 @@ class Document(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="documents")
+
+
+class QueryLog(Base):
+    """Audit trail of every query: the question, the cited answer, and the
+    token/cost footprint. Cheap to record now, painful to backfill later."""
+
+    __tablename__ = "query_logs"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    query = Column(Text, nullable=False)
+    answer = Column(Text, nullable=False)
+    citations = Column(JSON, default=list)  # list of citation dicts
+    used_graph = Column(Boolean, default=False)
+    graph_method = Column(String, nullable=True)
+    prompt_tokens = Column(Integer, default=0)
+    completion_tokens = Column(Integer, default=0)
+    total_tokens = Column(Integer, default=0)
+    cost_usd = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
