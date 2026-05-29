@@ -41,15 +41,20 @@ def _query(method: str, query: str) -> str:
         sys.executable, "-m", "graphrag", "query",
         "--root", str(workspace_root()),
         "--method", method,
-        "--query", query,
+        query,  # query is a positional argument in the graphrag CLI
     ]
     result = subprocess.run(
         cmd,
         capture_output=True,
         text=True,
-        check=True,
         timeout=settings.graphrag_timeout_seconds,
     )
+    if result.returncode != 0:
+        # Surface GraphRAG's own message instead of a bare exit code.
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(
+            f"graphrag query ({method}) failed (exit {result.returncode}):\n{detail}"
+        )
     return _clean(result.stdout)
 
 
