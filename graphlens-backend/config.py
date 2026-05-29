@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg2://graphlens:graphlens@localhost:5432/graphlens"
     redis_url: str = "redis://localhost:6379"
 
+    # --- GraphRAG (Phase 3) ---
+    # Shared/admin graph only; per-user privacy stays on the Qdrant side.
+    graphrag_root: str = "graphrag_workspace"
+    graphrag_llm_model: str = "gpt-4o"
+    graphrag_embedding_model: str = "text-embedding-3-large"
+    graphrag_timeout_seconds: int = 60 * 30  # indexing is slow
+
     # --- Auth ---
     jwt_secret: str = "change-me-in-prod"
     jwt_algorithm: str = "HS256"
