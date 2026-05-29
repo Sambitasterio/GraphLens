@@ -1,0 +1,4 @@
+# services/ — pipeline logic lands here:
+#   ingestion.py     (Phase 1)
+#   vectorstore.py   (Phase 2)
+#   graphrag_index.py / graphrag_query.py (Phase 3)

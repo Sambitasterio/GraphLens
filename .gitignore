@@ -5,6 +5,9 @@
 !.env.example
 !.env.local.example
 
+# Build plan (kept local)
+GraphLens.md
+
 # Python
 __pycache__/
 *.py[cod]

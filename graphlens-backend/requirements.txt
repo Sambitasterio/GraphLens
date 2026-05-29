@@ -1,0 +1,45 @@
+# ── Web framework ──────────────────────────────────────────────
+fastapi>=0.115,<0.116
+uvicorn[standard]>=0.32,<0.33
+python-multipart>=0.0.12          # file uploads
+pydantic>=2.9,<3
+pydantic-settings>=2.6,<3
+python-dotenv>=1.0
+
+# ── LLM / embeddings ───────────────────────────────────────────
+openai>=1.54,<2
+tiktoken>=0.8                     # token counting for chunking + cost logs
+
+# ── Retrieval ──────────────────────────────────────────────────
+qdrant-client>=1.12,<2
+llama-index>=0.12,<0.13
+# graphrag has tight dependency ranges — install last and lock the
+# resolved versions (uv/poetry). Pin exactly once Phase 3 is green.
+graphrag>=1.0
+
+# ── Datastores ─────────────────────────────────────────────────
+sqlalchemy>=2.0,<3
+alembic>=1.13
+psycopg2-binary>=2.9
+redis>=5.0
+rq>=2.0                           # async ingestion jobs
+
+# ── Auth ───────────────────────────────────────────────────────
+passlib[bcrypt]>=1.7
+python-jose[cryptography]>=3.3    # JWT
+
+# ── Document parsing ───────────────────────────────────────────
+pypdf>=5.0
+pdfplumber>=0.11
+python-docx>=1.1
+openpyxl>=3.1
+pandas>=2.2
+pytesseract>=0.3.13               # OCR fallback (needs system tesseract)
+unstructured>=0.16               # mixed-format extraction fallback
+
+# ── Hardening ──────────────────────────────────────────────────
+slowapi>=0.1.9                    # rate limiting
+
+# ── Dev / test ─────────────────────────────────────────────────
+pytest>=8.3
+httpx>=0.27                       # FastAPI TestClient transport

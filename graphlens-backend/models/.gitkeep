@@ -1,0 +1,2 @@
+# models/ — SQLAlchemy models + Pydantic schemas:
+#   user.py, document.py, citation.py, query_log.py (Phase 4 / 5 / 6)
