@@ -26,6 +26,7 @@ rq>=2.0                           # async ingestion jobs
 
 # ── Auth ───────────────────────────────────────────────────────
 passlib[bcrypt]>=1.7
+bcrypt<4.1                        # passlib 1.7.4 breaks with bcrypt 5.x
 python-jose[cryptography]>=3.3    # JWT
 
 # ── Document parsing ───────────────────────────────────────────

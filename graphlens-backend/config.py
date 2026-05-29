@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     qdrant_collection: str = "graphlens_docs"
 
     # --- Datastores ---
-    database_url: str = "postgresql+psycopg2://graphlens:graphlens@localhost:5432/graphlens"
+    database_url: str = "postgresql+psycopg2://graphlens:graphlens@localhost:5433/graphlens"
     redis_url: str = "redis://localhost:6379"
 
     # --- GraphRAG (Phase 3) ---
