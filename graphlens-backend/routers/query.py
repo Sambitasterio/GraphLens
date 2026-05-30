@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from db import SessionLocal, get_db
 from models.db_models import QueryLog, User
 from models.schemas import QueryLogOut, QueryRequest, QueryResponse
-from services import hybrid, llm, querylog
+from services import access, hybrid, llm, querylog
 from services.llm import LLMResult
 from services.ratelimit import limiter
 from services.security import get_current_user
@@ -26,10 +26,14 @@ from services.security import get_current_user
 router = APIRouter(prefix="/query", tags=["query"])
 
 
-def _retrieve(req: QueryRequest, user: User):
+def _retrieve(req: QueryRequest, user: User, db):
+    # RBAC: restrict vector retrieval to docs the user owns or was granted.
+    # accessible_doc_ids returns None for admins (unrestricted), [] for a user
+    # with no docs (→ no vector hits), or a list of allowed doc ids.
+    doc_ids = access.accessible_doc_ids(db, user)
     return hybrid.hybrid_retrieve(
         req.query,
-        user_id=user.id,
+        doc_ids=doc_ids,
         top_k=req.top_k,
         use_graph=req.use_graph,
         graph_method=req.graph_method,
@@ -44,7 +48,7 @@ def query(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    ctx = _retrieve(req, user)
+    ctx = _retrieve(req, user, db)
     result = llm.generate_answer(ctx)
     citations = llm.citations_from(ctx)
     querylog.record_query(
@@ -59,8 +63,9 @@ def query_stream(
     request: Request,
     req: QueryRequest,
     user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    ctx = _retrieve(req, user)
+    ctx = _retrieve(req, user, db)
     citations = llm.citations_from(ctx)
     collected: dict = {"text": "", "result": None}
 

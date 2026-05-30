@@ -125,6 +125,12 @@ def search(
     c = _client(client)
     name = _collection(collection)
 
+    # An explicit empty doc_id list means "no accessible docs" → no results.
+    # (Without this guard, an empty list would fall through to an unfiltered
+    # search and leak everyone's chunks.)
+    if doc_ids is not None and len(doc_ids) == 0:
+        return []
+
     if query_vector is None:
         from services.embeddings import embed_texts
 

@@ -19,6 +19,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -56,6 +57,18 @@ class Document(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="documents")
+
+
+class DocumentAccess(Base):
+    """Many-to-many grant: a document shared with a (non-owner) user."""
+
+    __tablename__ = "document_access"
+    __table_args__ = (UniqueConstraint("doc_id", "user_id", name="uq_doc_user"),)
+
+    id = Column(String, primary_key=True, default=_uuid)
+    doc_id = Column(String, ForeignKey("documents.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    granted_at = Column(DateTime, default=datetime.utcnow)
 
 
 class QueryLog(Base):

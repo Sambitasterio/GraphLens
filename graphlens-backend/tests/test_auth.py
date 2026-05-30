@@ -48,6 +48,15 @@ def test_login_wrong_password(client):
     assert r.status_code == 401
 
 
+def test_me_returns_current_user(client):
+    client.post("/auth/signup", json={"email": "me@b.com", "password": "pw12345"})
+    login = client.post("/auth/login", data={"username": "me@b.com", "password": "pw12345"})
+    token = login.json()["access_token"]
+    r = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    assert r.json()["email"] == "me@b.com"
+
+
 def test_documents_requires_auth(client):
     assert client.get("/documents").status_code == 401
 

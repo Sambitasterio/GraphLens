@@ -33,8 +33,13 @@ class DocumentOut(BaseModel):
     chunk_count: int
     uploaded_at: datetime
     error: str | None = None
+    owned: bool = True  # False when the doc was shared with the caller
 
     model_config = {"from_attributes": True}
+
+
+class ShareRequest(BaseModel):
+    user_email: EmailStr
 
 
 # ── query ──────────────────────────────────────────────────────────

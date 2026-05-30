@@ -1,7 +1,9 @@
-"""Create database tables (Phase 4 convenience; Alembic replaces this in Phase 6).
+"""Create database tables via create_all.
 
-Usage (from graphlens-backend/, venv active, Postgres running):
-    python -m scripts.init_db
+DEPRECATED for Postgres as of Phase 6 — use Alembic instead:
+    alembic upgrade head
+Kept only as a quick escape hatch / for ad-hoc SQLite use. Alembic
+(alembic/versions/) is now the source of truth for the schema.
 """
 from db import init_db
 
