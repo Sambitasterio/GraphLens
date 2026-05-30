@@ -15,6 +15,10 @@ export function DropZone({ onUploaded }: { onUploaded: () => void }) {
     async (files: File[]) => {
       const file = files[0];
       if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File is larger than 10MB");
+        return;
+      }
       setBusy(true);
       try {
         await uploadDocument(file);
