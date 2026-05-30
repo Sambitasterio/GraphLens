@@ -4,9 +4,10 @@ Upload your documents and ask questions in natural language. GraphLens answers
 with **cited, graph-augmented** responses — combining vector search with
 Microsoft GraphRAG so it can reason *across* documents, not just match keywords.
 
-> Live demo: _add your deployed URL here_
-
-![GraphLens dashboard](docs/screenshot-dashboard.png) <!-- add a screenshot -->
+<!-- Add a screenshot for a stronger first impression:
+     save a dashboard image to docs/screenshot-dashboard.png and uncomment:
+![GraphLens dashboard](docs/screenshot-dashboard.png)
+-->
 
 ---
 
