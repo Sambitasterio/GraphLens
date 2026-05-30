@@ -1,15 +1,16 @@
-/** JWT storage (localStorage). Lightweight for now; Phase 8 swaps in NextAuth. */
-const TOKEN_KEY = "graphlens_token";
+/** In-memory backend JWT, kept in sync with the NextAuth session by
+ * <TokenSync>. Not persisted — the httpOnly session cookie is the source of
+ * truth, so a refresh re-hydrates the token from the session. */
+let memToken: string | null = null;
 
 export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return memToken;
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
+  memToken = token;
 }
 
 export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  memToken = null;
 }

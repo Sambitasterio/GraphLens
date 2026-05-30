@@ -2,20 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 
 import { GlowBackground } from "@/components/GlowBackground";
 import { ChatWindow } from "@/components/dashboard/ChatWindow";
 import { CitationPanel } from "@/components/dashboard/CitationPanel";
 import { DocumentList } from "@/components/dashboard/DocumentList";
 import { DropZone } from "@/components/dashboard/DropZone";
-import { fetchMe, logout, type User } from "@/lib/auth";
 import { listDocuments, type DocumentItem } from "@/lib/documents";
 import type { Citation } from "@/lib/query";
-import { getToken } from "@/lib/token";
+import { setToken } from "@/lib/token";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { data: session, status } = useSession();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [citations, setCitations] = useState<Citation[]>([]);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -24,19 +24,17 @@ export default function DashboardPage() {
     listDocuments().then(setDocuments).catch(() => {});
   }, []);
 
-  // Auth guard + initial load
+  // Auth gate + initial load (middleware also guards this route server-side).
   useEffect(() => {
-    if (!getToken()) {
+    if (status === "unauthenticated") {
       router.replace("/login");
       return;
     }
-    fetchMe()
-      .then((u) => {
-        setUser(u);
-        refreshDocuments();
-      })
-      .catch(() => router.replace("/login"));
-  }, [router, refreshDocuments]);
+    if (status === "authenticated" && session?.accessToken) {
+      setToken(session.accessToken); // ensure token is set before we fetch
+      refreshDocuments();
+    }
+  }, [status, session, router, refreshDocuments]);
 
   // Poll while any document is still processing
   useEffect(() => {
@@ -55,18 +53,15 @@ export default function DashboardPage() {
     };
   }, [documents, refreshDocuments]);
 
-  function handleLogout() {
-    logout();
-    router.replace("/login");
-  }
-
-  if (!user) {
+  if (status !== "authenticated" || !session?.user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white text-black/50">
         Loading…
       </div>
     );
   }
+
+  const user = session.user;
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-white">
@@ -85,7 +80,7 @@ export default function DashboardPage() {
             )}
           </span>
           <button
-            onClick={handleLogout}
+            onClick={() => signOut({ callbackUrl: "/login" })}
             className="rounded-[10px] border border-black/10 px-3 py-1.5 font-medium text-black/70 transition-colors hover:bg-black/5"
           >
             Log out

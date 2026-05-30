@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
 
 import { GlowBackground } from "@/components/GlowBackground";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { errorMessage, login, signup } from "@/lib/auth";
+import { errorMessage, signup } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,8 +32,17 @@ export default function LoginPage() {
         await signup(email, password);
         toast.success("Account created — signing you in…");
       }
-      await login(email, password);
-      router.push("/dashboard");
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (res?.error) {
+        toast.error("Incorrect email or password");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
     } catch (err) {
       toast.error(errorMessage(err, "Authentication failed"));
     } finally {

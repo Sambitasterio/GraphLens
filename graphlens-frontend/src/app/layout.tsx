@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fustat, Inter } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
 
 const fustat = Fustat({
@@ -31,7 +32,7 @@ export default function RootLayout({
       className={`${fustat.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-white text-foreground">
-        {children}
+        <Providers>{children}</Providers>
         <Toaster position="top-center" />
       </body>
     </html>
