@@ -2,17 +2,16 @@
 fastapi>=0.115,<0.116
 uvicorn[standard]>=0.32,<0.33
 python-multipart>=0.0.12          # file uploads
-pydantic>=2.9,<3
+pydantic[email]>=2.9,<3          # [email] pulls email-validator for EmailStr
 pydantic-settings>=2.6,<3
 python-dotenv>=1.0
 
 # ── LLM / embeddings ───────────────────────────────────────────
-openai>=1.54,<2
+openai>=2.20,<3                   # >=2.20 required by graphrag's litellm dep
 tiktoken>=0.8                     # token counting for chunking + cost logs
 
 # ── Retrieval ──────────────────────────────────────────────────
 qdrant-client>=1.12,<2
-llama-index>=0.12,<0.13
 # graphrag has tight dependency ranges — install last and lock the
 # resolved versions (uv/poetry). Pin exactly once Phase 3 is green.
 graphrag>=1.0
@@ -36,7 +35,6 @@ python-docx>=1.1
 openpyxl>=3.1
 pandas>=2.2
 pytesseract>=0.3.13               # OCR fallback (needs system tesseract)
-unstructured>=0.16               # mixed-format extraction fallback
 
 # ── Hardening ──────────────────────────────────────────────────
 slowapi>=0.1.9                    # rate limiting

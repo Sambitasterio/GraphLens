@@ -1,6 +1,6 @@
 """Document endpoints: upload (async ingestion), list, delete."""
-from __future__ import annotations
-
+# NOTE: no `from __future__ import annotations` here — it turns `UploadFile`
+# into a ForwardRef that FastAPI mis-handles on the /upload route.
 import logging
 import os
 import tempfile

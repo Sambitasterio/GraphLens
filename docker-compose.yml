@@ -46,6 +46,10 @@ services:
       QDRANT_URL: http://qdrant:6333
       DATABASE_URL: postgresql+psycopg2://graphlens:graphlens@postgres:5432/graphlens
       REDIS_URL: redis://redis:6379
+    volumes:
+      # Mount the shared GraphRAG workspace so the indexed graph is available
+      # in the container (graph artifacts live on the host).
+      - ./graphlens-backend/graphrag_workspace:/app/graphrag_workspace
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,6 +57,23 @@ services:
         condition: service_started
       redis:
         condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./graphlens-frontend
+      args:
+        # Baked into the client bundle → must be the host-reachable backend URL.
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    environment:
+      # Server-side (NextAuth) reaches the backend over the compose network.
+      API_INTERNAL_URL: http://backend:8000
+      AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-in-prod}
+      AUTH_TRUST_HOST: "true"
+    depends_on:
+      - backend
     restart: unless-stopped
 
 volumes:

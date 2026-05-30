@@ -7,8 +7,8 @@
 
 Every query is recorded to the query_logs table (Phase 5).
 """
-from __future__ import annotations
-
+# No `from __future__ import annotations` — it turns `req: QueryRequest` into a
+# ForwardRef that FastAPI mis-reads as a query param instead of a JSON body.
 import json
 
 from fastapi import APIRouter, Depends, Request

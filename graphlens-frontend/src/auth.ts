@@ -1,7 +1,13 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Server-side calls (this file runs on the server) prefer the internal URL so
+// that inside Docker we reach the backend at http://backend:8000, while the
+// browser still uses NEXT_PUBLIC_API_URL (http://localhost:8000).
+const API =
+  process.env.API_INTERNAL_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8000";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
