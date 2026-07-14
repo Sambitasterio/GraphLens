@@ -19,6 +19,7 @@ Microsoft GraphRAG so it can reason *across* documents, not just match keywords.
 - 💬 **Streaming chat** — answers stream token-by-token (SSE) with a live source/citation panel.
 - 🧾 **Audit trail** — every query, its citations, and token/cost are persisted to `query_logs`.
 - 🎨 **Liquid-glass UI** — Next.js + Tailwind, glassmorphic design.
+  
 
 ## Architecture
 
